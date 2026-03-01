@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mongo:*)",
+      "Bash(mongosh:*)",
+      "Bash(winget search:*)",
+      "Bash(sc query:*)",
+      "Bash(mongod:*)",
+      "Bash(echo 未找到:*)"
+    ]
+  }
+}
