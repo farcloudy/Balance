@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 require('dotenv').config()
 
 const User = require('../models/User')
@@ -18,7 +19,15 @@ async function initAdmin() {
         }
 
         // 创建管理员账户
-        const hashedPassword = await bcrypt.hash('admin123', 10)
+        // 密码加密流程（与前端一致）：
+        // 1. 明文密码 'admin123'
+        // 2. 使用 SHA-256 进行第一次加密（模拟前端加密）
+        const plainPassword = 'admin123'
+        const firstHash = crypto.createHash('sha256').update(plainPassword).digest('hex')
+
+        // 3. 使用 bcrypt 进行第二次哈希（后端加密）
+        const hashedPassword = await bcrypt.hash(firstHash, 10)
+
         const admin = await User.create({
             username: 'admin',
             password: hashedPassword,
@@ -29,6 +38,8 @@ async function initAdmin() {
         console.log('  用户名: admin')
         console.log('  密码: admin123')
         console.log('  请在首次登录后修改密码')
+        console.log('')
+        console.log('注意：登录时前端会自动对密码进行 SHA-256 加密后传输')
 
         process.exit(0)
     } catch (error) {
