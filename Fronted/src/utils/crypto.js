@@ -6,5 +6,8 @@ import CryptoJS from 'crypto-js'
  * @returns {string} SHA-256 加密后的字符串
  */
 export function encryptPassword(password) {
+    if (!password) {
+        throw new Error('密码不能为空')
+    }
     return CryptoJS.SHA256(password).toString()
 }

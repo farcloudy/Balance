@@ -1,9 +1,9 @@
 <template>
-    <div class="login-container">
-        <div class="login-card">
-            <h2 class="login-title">登录</h2>
+    <div class="register-container">
+        <div class="register-card">
+            <h2 class="register-title">注册</h2>
 
-            <form @submit.prevent="handleLogin" class="login-form">
+            <form @submit.prevent="handleRegister" class="register-form">
                 <!-- 用户名输入 -->
                 <div class="form-group">
                     <label for="username">用户名</label>
@@ -11,7 +11,7 @@
                         id="username"
                         v-model="formData.username"
                         type="text"
-                        placeholder="请输入用户名"
+                        placeholder="3-20个字符，仅限字母、数字和下划线"
                         @blur="validateField('username')"
                         @input="clearFieldError('username')"
                         :class="{ 'input-error': errors.username }"
@@ -29,9 +29,9 @@
                             id="password"
                             v-model="formData.password"
                             :type="showPassword ? 'text' : 'password'"
-                            placeholder="请输入密码"
+                            placeholder="至少8个字符，建议包含大小写字母、数字和特殊字符"
                             @blur="validateField('password')"
-                            @input="clearFieldError('password')"
+                            @input="onPasswordInput"
                             :class="{ 'input-error': errors.password }"
                         />
                         <button
@@ -45,6 +45,51 @@
                     <span v-if="errors.password" class="error-message">
                         {{ errors.password }}
                     </span>
+
+                    <!-- 密码强度指示器 -->
+                    <div v-if="formData.password" class="password-strength">
+                        <div class="strength-bar">
+                            <div
+                                class="strength-fill"
+                                :style="{
+                                    width: `${(passwordStrength.strengthScore / 4) * 100}%`,
+                                    backgroundColor: getPasswordStrengthColor(passwordStrength.strength)
+                                }"
+                            ></div>
+                        </div>
+                        <span
+                            class="strength-text"
+                            :style="{ color: getPasswordStrengthColor(passwordStrength.strength) }"
+                        >
+                            密码强度：{{ getPasswordStrengthText(passwordStrength.strength) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 确认密码输入 -->
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <div class="password-input-wrapper">
+                        <input
+                            id="confirmPassword"
+                            v-model="formData.confirmPassword"
+                            :type="showConfirmPassword ? 'text' : 'password'"
+                            placeholder="请再次输入密码"
+                            @blur="validateField('confirmPassword')"
+                            @input="clearFieldError('confirmPassword')"
+                            :class="{ 'input-error': errors.confirmPassword }"
+                        />
+                        <button
+                            type="button"
+                            class="toggle-password"
+                            @click="showConfirmPassword = !showConfirmPassword"
+                        >
+                            {{ showConfirmPassword ? '隐藏' : '显示' }}
+                        </button>
+                    </div>
+                    <span v-if="errors.confirmPassword" class="error-message">
+                        {{ errors.confirmPassword }}
+                    </span>
                 </div>
 
                 <!-- 提交按钮 -->
@@ -53,12 +98,12 @@
                     class="submit-button"
                     :disabled="isSubmitting"
                 >
-                    {{ isSubmitting ? '登录中...' : '登录' }}
+                    {{ isSubmitting ? '注册中...' : '注册' }}
                 </button>
 
-                <!-- 注册链接 -->
-                <div class="register-link">
-                    还没有账号？<router-link to="/register">立即注册</router-link>
+                <!-- 登录链接 -->
+                <div class="login-link">
+                    已有账号？<router-link to="/login">立即登录</router-link>
                 </div>
             </form>
         </div>
@@ -69,8 +114,14 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { login } from '@/api/auth'
-import { validateUsername, validatePassword } from '@/utils/formValidation'
+import { register } from '@/api/auth'
+import {
+    validateUsername,
+    validatePassword,
+    validatePasswordConfirm,
+    getPasswordStrengthText,
+    getPasswordStrengthColor
+} from '@/utils/formValidation'
 import { encryptPassword } from '@/utils/crypto'
 
 const router = useRouter()
@@ -79,17 +130,26 @@ const userStore = useUserStore()
 // 表单数据
 const formData = reactive({
     username: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
 })
 
 // 错误信息
 const errors = reactive({
     username: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
+})
+
+// 密码强度
+const passwordStrength = reactive({
+    strength: 'none',
+    strengthScore: 0
 })
 
 // 状态
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 
 /**
@@ -105,6 +165,19 @@ function validateField(field) {
     if (field === 'password') {
         const result = validatePassword(formData.password)
         errors.password = result.valid ? '' : result.message
+
+        // 更新密码强度
+        if (result.valid) {
+            passwordStrength.strength = result.strength
+            passwordStrength.strengthScore = result.strengthScore
+        }
+
+        return result.valid
+    }
+
+    if (field === 'confirmPassword') {
+        const result = validatePasswordConfirm(formData.password, formData.confirmPassword)
+        errors.confirmPassword = result.valid ? '' : result.message
         return result.valid
     }
 
@@ -119,19 +192,39 @@ function clearFieldError(field) {
 }
 
 /**
+ * 密码输入时的处理
+ */
+function onPasswordInput() {
+    clearFieldError('password')
+
+    // 实时更新密码强度
+    if (formData.password) {
+        const result = validatePassword(formData.password)
+        if (result.valid) {
+            passwordStrength.strength = result.strength
+            passwordStrength.strengthScore = result.strengthScore
+        }
+    } else {
+        passwordStrength.strength = 'none'
+        passwordStrength.strengthScore = 0
+    }
+}
+
+/**
  * 验证整个表单
  */
 function validateForm() {
     const usernameValid = validateField('username')
     const passwordValid = validateField('password')
+    const confirmPasswordValid = validateField('confirmPassword')
 
-    return usernameValid && passwordValid
+    return usernameValid && passwordValid && confirmPasswordValid
 }
 
 /**
- * 处理登录
+ * 处理注册
  */
-async function handleLogin() {
+async function handleRegister() {
     // 验证表单
     if (!validateForm()) {
         return
@@ -143,30 +236,29 @@ async function handleLogin() {
         // 加密密码
         const encryptedPassword = encryptPassword(formData.password)
 
-        // 调用登录接口
-        const res = await login({
+        // 调用注册接口
+        await register({
             username: formData.username,
             password: encryptedPassword
         })
 
-        // 保存 token 和用户信息
-        userStore.setToken(res.token)
-        userStore.setUserInfo(res.user)
+        // 注册成功提示
+        alert('注册成功，请登录')
 
-        // 登录成功，跳转到首页
-        router.push('/')
+        // 跳转到登录页
+        router.push('/login')
     } catch (error) {
         // 显示错误信息
         if (error.response?.data?.error) {
             const errorMsg = error.response.data.error
-            // 根据错误信息判断显示位置
+            // 根据错误类型显示在相应字段
             if (errorMsg.includes('用户名')) {
                 errors.username = errorMsg
             } else {
                 errors.password = errorMsg
             }
         } else {
-            errors.password = '登录失败，请稍后重试'
+            errors.password = '注册失败，请稍后重试'
         }
     } finally {
         isSubmitting.value = false
@@ -175,7 +267,7 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-container {
+.register-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -183,7 +275,7 @@ async function handleLogin() {
     background-color: #f5f5f5;
 }
 
-.login-card {
+.register-card {
     width: 100%;
     max-width: 400px;
     padding: 40px;
@@ -192,14 +284,14 @@ async function handleLogin() {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
-.login-title {
+.register-title {
     margin: 0 0 30px;
     text-align: center;
     font-size: 24px;
     color: #333;
 }
 
-.login-form {
+.register-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -261,6 +353,28 @@ async function handleLogin() {
     color: #f56c6c;
 }
 
+.password-strength {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.strength-bar {
+    height: 4px;
+    background-color: #e4e7ed;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.strength-text {
+    font-size: 12px;
+}
+
 .submit-button {
     padding: 12px;
     border: none;
@@ -281,18 +395,18 @@ async function handleLogin() {
     cursor: not-allowed;
 }
 
-.register-link {
+.login-link {
     text-align: center;
     font-size: 14px;
     color: #666;
 }
 
-.register-link a {
+.login-link a {
     color: #409eff;
     text-decoration: none;
 }
 
-.register-link a:hover {
+.login-link a:hover {
     text-decoration: underline;
 }
 </style>
