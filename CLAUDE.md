@@ -12,6 +12,7 @@
 
 **当前可用的参考文档**:
 - `memory/MONGODB.md`: 本机 MongoDB 8.2 的安装配置信息，包括连接字符串、目录结构、服务管理等
+- `memory/FRONTEND.md`: 前端项目配置信息，包括依赖版本、目录结构、开发规范等
 
 ## 项目概述
 
@@ -24,9 +25,11 @@ Balance 是一个设计为在 Windows 本地运行的个人记账系统。它实
 - 在 Windows 本地运行
 
 **前端** (位于 `Fronted/` 目录 - 注意目录名):
-- Vue 3 (最新版本)
-- Pinia 状态管理
-- Router 根据需要使用
+- Vue 3.5.25 + Vite 7.3.1
+- Pinia 3.0.4 状态管理
+- Vue Router 5.0.3
+- Axios 请求库
+- 已完成初始化配置
 
 ## 核心功能
 
@@ -51,6 +54,8 @@ Balance 是一个设计为在 Windows 本地运行的个人记账系统。它实
 
 ### 代码风格
 - 使用 4 个空格缩进（不使用制表符）
+- 单引号、不使用分号
+- 已配置 Prettier 和 ESLint
 - 适用于前端和后端代码
 
 ### 多租户
@@ -85,11 +90,18 @@ Balance 是一个设计为在 Windows 本地运行的个人记账系统。它实
 
 ## 开发设置
 
-由于这是一个新项目，初始设置包括：
+### 前端（已完成）
+- ✅ 使用 Vite 初始化 Vue 3 项目
+- ✅ 配置 Pinia 状态管理（用户认证 store）
+- ✅ 配置 Vue Router（首页、登录页）
+- ✅ 配置 Axios 请求封装（token 自动添加、401 拦截）
+- ✅ 配置代码规范（Prettier、ESLint）
+- ✅ 配置环境变量和开发代理
+
+### 后端（待开发）
 1. 初始化 Node.js 后端并连接 MongoDB
-2. 使用 Vite 初始化 Vue 3 前端
-3. 配置 Pinia 状态管理
-4. 设置对象存储集成（参考：`D:\Work\Sheet\backend\routers`）
+2. 实现用户认证 API
+3. 设置对象存储集成（参考：`D:\Work\Sheet\backend\routers`）
 
 ## 项目结构
 
