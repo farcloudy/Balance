@@ -24,6 +24,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { login } from '../api/auth'
+import { encryptPassword } from '../utils/crypto'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -38,12 +39,17 @@ const loading = ref(false)
 async function handleLogin() {
     loading.value = true
     try {
-        const res = await login(form.value)
+        // 使用 SHA-256 加密密码后再发送到后端
+        const encryptedData = {
+            username: form.value.username,
+            password: encryptPassword(form.value.password)
+        }
+        const res = await login(encryptedData)
         userStore.setToken(res.token)
         userStore.setUserInfo(res.user)
         router.push('/')
     } catch (error) {
-        alert('登录失败：' + (error.response?.data?.message || error.message))
+        alert('登录失败：' + (error.response?.data?.error || error.message))
     } finally {
         loading.value = false
     }
