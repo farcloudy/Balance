@@ -6,7 +6,10 @@
       "Bash(winget search:*)",
       "Bash(sc query:*)",
       "Bash(mongod:*)",
-      "Bash(echo 未找到:*)"
+      "Bash(echo 未找到:*)",
+      "Bash(cd Fronted:*)",
+      "Bash(npm install:*)",
+      "Bash(node:*)"
     ]
   }
 }
