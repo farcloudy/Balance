@@ -13,9 +13,14 @@
 - ✅ 用户认证 API（注册、登录、获取用户信息、登出）
 - ✅ JWT 认证中间件
 - ✅ 管理员账户初始化脚本（支持二次哈希）
+- ✅ Book 和 Account 模型定义
+- ✅ 账套 CRUD API（创建、查询、更新、归档）
+- ✅ 会计科目自动初始化（标准模板）
+- ✅ 账套访问权限控制中间件
+- ✅ 多租户数据隔离
 
 ### 当前阶段
-✅ 第一阶段（用户认证系统）已完成，准备进入第二阶段（账套管理）。
+✅ 第三阶段（会计科目管理）已完成，准备进入第四阶段（分录和凭证管理）。
 
 ### 待开发
 本计划按照优先级和依赖关系，分阶段实现后端功能。
@@ -78,17 +83,17 @@
 ### 任务清单
 
 #### 2.1 Book 模型
-- [ ] 创建 `models/Book.js`
+- ✅ 创建 `models/Book.js`
   - 定义 schema（参考 database_design.md）
   - 添加验证规则
 
 #### 2.2 账套权限中间件
-- [ ] 创建 `middleware/bookAccess.js`
+- ✅ 创建 `middleware/bookAccess.js`
   - 验证 bookId 属于当前用户
   - 自动注入 book 对象到 req
 
 #### 2.3 账套路由
-- [ ] 创建 `routes/books.js`
+- ✅ 创建 `routes/books.js`
   - POST `/api/books` - 创建账套
   - GET `/api/books` - 获取用户的所有账套
   - GET `/api/books/:id` - 获取单个账套详情
@@ -96,13 +101,13 @@
   - DELETE `/api/books/:id` - 删除/归档账套
 
 #### 2.4 标准科目模板
-- [ ] 创建 `utils/accountTemplate.js`
+- ✅ 创建 `utils/accountTemplate.js`
   - 定义标准会计科目结构（参考 database_design.md）
   - 创建账套时自动初始化科目
 
 #### 2.5 测试
-- [ ] 测试创建账套并自动初始化科目
-- [ ] 测试多租户隔离（用户 A 无法访问用户 B 的账套）
+- ✅ 测试创建账套并自动初始化科目
+- ✅ 测试多租户隔离（用户 A 无法访问用户 B 的账套）
 
 ---
 
@@ -114,12 +119,12 @@
 ### 任务清单
 
 #### 3.1 Account 模型
-- [ ] 创建 `models/Account.js`
+- ✅ 创建 `models/Account.js`
   - 定义 schema（参考 database_design.md）
   - 添加验证规则（科目代码唯一性等）
 
 #### 3.2 会计科目路由
-- [ ] 创建 `routes/accounts.js`
+- ✅ 创建 `routes/accounts.js`
   - GET `/api/books/:bookId/accounts` - 获取账套的所有科目
   - GET `/api/books/:bookId/accounts/:id` - 获取单个科目详情
   - POST `/api/books/:bookId/accounts` - 创建自定义科目
@@ -127,13 +132,14 @@
   - DELETE `/api/books/:bookId/accounts/:id` - 停用科目
 
 #### 3.3 科目余额查询
-- [ ] 创建 `utils/accountBalance.js`
+- ✅ 创建 `utils/accountBalance.js`
   - 实现 `getAccountBalance()` 函数（参考 database_design.md）
   - 支持指定日期查询余额
+  - 使用聚合管道优化性能
 
 #### 3.4 测试
-- [ ] 测试科目的层级结构
-- [ ] 测试科目余额计算的准确性
+- ✅ 测试科目的层级结构
+- ✅ 测试科目余额计算的准确性
 
 ---
 
