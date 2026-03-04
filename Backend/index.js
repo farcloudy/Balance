@@ -23,6 +23,7 @@ if (!process.env.JWT_SECRET) {
 const authRoutes = require('./routes/auth')
 const bookRoutes = require('./routes/books')
 const accountRoutes = require('./routes/accounts')
+const entryRoutes = require('./routes/entries')
 
 // 基础路由
 app.get('/', (req, res) => {
@@ -38,6 +39,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/books', bookRoutes)
 app.use('/api/books', accountRoutes)
+app.use('/api/books', entryRoutes)
 
 // 404 处理
 app.use((req, res) => {
